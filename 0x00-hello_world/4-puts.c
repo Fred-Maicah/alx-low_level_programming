@@ -1,4 +1,5 @@
 #include <stdio>
+
 /**
  * main - a program that prints a line with puts function
  *
