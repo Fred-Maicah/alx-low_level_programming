@@ -24,12 +24,12 @@ if (m > 5)
 if (m < 6 && m != 0)
 {
 	printf("Last digit of %d is %d and less than 6 and not 0\n",
-		n, n % 10);
+		n, m);
 }
 if (m == 0)
 {
 	printf("Last digit of %d is %d and is 0\n",
-		n, n % 10);
+		n, m);
 }
 return (0);
 }
