@@ -6,13 +6,22 @@
  */
 int main(void)
 {
-char alp[52] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-int i;
+char s;
 
-for (i = 0; i < 52; i++)
-{
-	putchar(alp[i]);
-}
-putchar("\n");
+char t;
+
+s = 'a';
+t = 'A';
+while
+	(s <= 'z') {
+		putchar(s);
+			s++;
+	}
+while
+	(t <= 'z') {
+		putchar(t);
+			t++;
+	}
+putchar('\n');
 return (0);
 }
