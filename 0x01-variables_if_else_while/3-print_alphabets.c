@@ -18,7 +18,7 @@ while
 			s++;
 	}
 while
-	(t <= 'z') {
+	(t <= 'Z') {
 		putchar(t);
 			t++;
 	}
