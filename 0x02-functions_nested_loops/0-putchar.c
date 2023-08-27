@@ -1,10 +1,10 @@
-#include "stdio.h"
-
+#include <main.h>
 /**
- * main -  A program that prints the alphabet in lowercase
+ * main - print _putchar
  *
- * Return: Always 0.
+ * Return: 0
  */
+
 int main(void)
 {
 _putchar('_');
