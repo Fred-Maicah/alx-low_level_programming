@@ -1,107 +1,71 @@
-#include "main.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#include <unistd.h>
+#include <fcntl.h>  // for open
+#include <unistd.h> // for read, write, close
+#include <stdlib.h> // for malloc, free, exit
 
-char *create_buffer(char *file);
-void close_file(int fd);
+#define BUFFER_SIZE 1024
 
-/**
- * create_buffer - Allocates 1024 bytes for a buffer.
- * @file: The name of the file buffer is storing chars for.
- *
- * Return: A pointer to the newly-allocated buffer.
- */
-char *create_buffer(char *file)
-{
-    char *buffer;
+void *create_buffer(size_t size);
+void copy_file(const char *file_from, const char *file_to);
+void handle_error(const char *message, int exit_code);
 
-    buffer = malloc(sizeof(char) * 1024);
-
-    if (buffer == NULL)
-    {
-        dprintf(STDERR_FILENO,
-            "Error: Can't write to %s\n", file);
-        exit(99);
+int main(int argc, char *argv[]) {
+    if (argc != 3) {
+        handle_error("Usage: cp file_from file_to\n", 97);
     }
 
-    return (buffer);
+    copy_file(argv[1], argv[2]);
+
+    return 0;
 }
 
-/**
- * close_file - Closes file descriptors.
- * @fd: The file descriptor to be closed.
- */
-void close_file(int fd)
-{
-    int c;
-
-    c = close(fd);
-
-    if (c == -1)
-    {
-        dprintf(STDERR_FILENO, "Error: Can't close fd %d\n", fd);
-        exit(100);
+void *create_buffer(size_t size) {
+    void *buffer = malloc(size);
+    if (buffer == NULL) {
+        handle_error("Error: Can't allocate memory\n", 99);
     }
+    return buffer;
 }
 
-/**
- * main - Copies the contents of a file to another file.
- * @argc: The number of arguments supplied to the program.
- * @argv: An array of pointers to the arguments.
- *
- * Return: 0 on success.
- *
- * Description: If the argument count is incorrect - exit code 97.
- * If file_from does not exist or cannot be read - exit code 98.
- * If file_to cannot be created or written to - exit code 99.
- * If file_to or file_from cannot be closed - exit code 100.
- */
-int main(int argc, char *argv[])
-{
-    int from, to, r, w;
-    char *buffer;
+void copy_file(const char *file_from, const char *file_to) {
+    int fd_from, fd_to, read_bytes;
+    char *buffer = create_buffer(BUFFER_SIZE);
 
-    if (argc != 3)
-    {
-        dprintf(STDERR_FILENO, "Usage: cp file_from file_to\n");
-        exit(97);
+    fd_from = open(file_from, O_RDONLY);
+    if (fd_from == -1) {
+        free(buffer);
+        handle_error("Error: Can't read from file\n", 98);
     }
 
-    buffer = create_buffer(argv[2]);
-    from = open(argv[1], O_RDONLY);
-    r = read(from, buffer, 1024);
-    to = open(argv[2], O_CREAT | O_WRONLY | O_TRUNC, 0664);
+    fd_to = open(file_to, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (fd_to == -1) {
+        close(fd_from);
+        free(buffer);
+        handle_error("Error: Can't write to file\n", 99);
+    }
 
-    do {
-        if (from == -1 || r == -1)
-        {
-            dprintf(STDERR_FILENO,
-                "Error: Can't read from file %s\n", argv[1]);
+    while ((read_bytes = read(fd_from, buffer, BUFFER_SIZE)) > 0) {
+        if (write(fd_to, buffer, read_bytes) != read_bytes) {
+            close(fd_from);
+            close(fd_to);
             free(buffer);
-            exit(98);
+            handle_error("Error: Can't write to file\n", 99);
         }
+    }
 
-        w = write(to, buffer, r);
-        if (to == -1 || w == -1)
-        {
-            dprintf(STDERR_FILENO,
-                "Error: Can't write to %s\n", argv[2]);
-            free(buffer);
-            exit(99);
-        }
+    if (read_bytes == -1) {
+        close(fd_from);
+        close(fd_to);
+        free(buffer);
+        handle_error("Error: Can't read from file\n", 98);
+    }
 
-        r = read(from, buffer, 1024);
-        if (r > 0)
-            to = open(argv[2], O_WRONLY | O_APPEND);
-
-    } while (r > 0);
-
+    close(fd_from);
+    close(fd_to);
     free(buffer);
-    close_file(from);
-    close_file(to);
+}
 
-    return (0);
+void handle_error(const char *message, int exit_code) {
+    write(STDERR_FILENO, message, sizeof(message));
+    exit(exit_code);
 }
 
