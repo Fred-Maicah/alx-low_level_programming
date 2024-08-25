@@ -1,7 +1,6 @@
 #include <fcntl.h>  /* for open */
 #include <unistd.h> /* for read, write, close */
 #include <stdlib.h> /* for malloc, free, exit */
-#include <string.h> /* for strlen */
 
 #define BUFFER_SIZE 1024
 
@@ -66,7 +65,12 @@ void copy_file(const char *file_from, const char *file_to) {
 }
 
 void handle_error(const char *message, int exit_code) {
-    write(STDERR_FILENO, message, strlen(message));
+    /* Write the error message to stderr */
+    size_t len = 0;
+    while (message[len] != '\0') {
+        len++;
+    }
+    write(STDERR_FILENO, message, len);
     exit(exit_code);
 }
 
